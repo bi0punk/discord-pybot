@@ -10,10 +10,18 @@ intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 ruta_archivo_log = '/root/server/logs/latest.log'  # Reemplaza con la ruta correcta
+historial_mensajes_archivo = 'historial_mensajes.txt'  # Nombre del archivo de historial
 historial_mensajes = set()
 
+# Cargar historial de mensajes desde el archivo
+try:
+    with open(historial_mensajes_archivo, 'r') as archivo:
+        historial_mensajes = set(archivo.read().splitlines())
+except FileNotFoundError:
+    pass
+
 async def send_auto_message():
-    channel_id = 1103919972771708949  # Reemplaza con el ID del canal
+    channel_id =   # Reemplaza con el ID del canal
     channel = bot.get_channel(channel_id)
 
     while True:
@@ -27,6 +35,10 @@ async def send_auto_message():
                 await enviar_mensaje(channel, mensaje)
                 historial_mensajes.add(mensaje)
 
+                # Guarda el historial actualizado en el archivo
+                with open(historial_mensajes_archivo, 'a') as archivo:
+                    archivo.write(mensaje + '\n')
+
 class ManejadorDeEventos(FileSystemEventHandler):
     async def on_modified(self, event):
         nuevos_mensajes = obtener_nuevos_mensajes(ruta_archivo_log)
@@ -38,6 +50,10 @@ class ManejadorDeEventos(FileSystemEventHandler):
             if mensaje not in historial_mensajes:
                 await enviar_mensaje(channel, mensaje)
                 historial_mensajes.add(mensaje)
+
+                # Guarda el historial actualizado en el archivo
+                with open(historial_mensajes_archivo, 'a') as archivo:
+                    archivo.write(mensaje + '\n')
 
 def obtener_nuevos_mensajes(ruta):
     palabras_clave = ["joined the game", 
