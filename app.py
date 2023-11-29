@@ -10,6 +10,7 @@ intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 ruta_archivo_log = '/root/server/logs/latest.log'  # Reemplaza con la ruta correcta
+last_sent_message = None
 
 async def send_auto_message():
     channel_id = 1103919972771708949  # Reemplaza con el ID del canal
@@ -21,7 +22,10 @@ async def send_auto_message():
         # Verifica si hay nuevos mensajes en el archivo de registro relacionados con jugadores
         nuevos_mensajes = obtener_nuevos_mensajes(ruta_archivo_log)
         for mensaje in nuevos_mensajes:
-            await enviar_mensaje(channel, mensaje)
+            # Verifica si el mensaje es igual al último mensaje enviado
+            if mensaje != last_sent_message:
+                await enviar_mensaje(channel, mensaje)
+                last_sent_message = mensaje
 
 class ManejadorDeEventos(FileSystemEventHandler):
     async def on_modified(self, event):
@@ -31,7 +35,11 @@ class ManejadorDeEventos(FileSystemEventHandler):
             for mensaje in nuevos_mensajes:
                 channel_id = TU_ID_DE_CANAL  # Reemplaza con el ID del canal
                 channel = bot.get_channel(channel_id)
-                await enviar_mensaje(channel, mensaje)
+                
+                # Verifica si el mensaje es igual al último mensaje enviado
+                if mensaje != last_sent_message:
+                    await enviar_mensaje(channel, mensaje)
+                    last_sent_message = mensaje
 
 def obtener_nuevos_mensajes(ruta):
     with open(ruta, 'r') as archivo:
