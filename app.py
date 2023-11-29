@@ -1,44 +1,63 @@
-
 import discord
 import asyncio
 from discord.ext import commands
 from datetime import datetime
-import schedule
-# Configura las intenciones requeridas
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+
 intents = discord.Intents.default()
 intents.message_content = True
-
-# Configura el bot con las intenciones
 bot = commands.Bot(command_prefix='!', intents=intents)
 
+ruta_archivo_log = 'RUTA_AL_ARCHIVO_DE_LOG_DEL_SERVIDOR'  # Reemplaza con la ruta correcta
 
 async def send_auto_message():
-    channel = bot.get_channel()  
+    channel_id = TU_ID_DE_CANAL  # Reemplaza con el ID del canal
+    channel = bot.get_channel(channel_id)
 
     while True:
         now = datetime.now()
         current_time = now.strftime("%H:%M")
-        print(current_time)
-        if current_time == "21:20":
-            print(current_time)
-            # Crea un mensaje "embed" con una imagen
-            embed = discord.Embed(title="Que pasa con las", description="")
+
+        if current_time == "23:20":
+            embed = discord.Embed(title="¡Qué pasa con las!", description="")
             file = discord.File('img/FMO2fvaXIAkfjPR.jpeg', filename='FMO2fvaXIAkfjPR.jpeg')
             embed.set_image(url="attachment://FMO2fvaXIAkfjPR.jpeg")
 
-            # Envía el "embed" al canal
             await channel.send(embed=embed, file=file)
 
-        await asyncio.sleep(60)  
+        await asyncio.sleep(60)
 
+# Clase para manejar eventos de cambio en el archivo de registro
+class ManejadorDeEventos(FileSystemEventHandler):
+    async def on_modified(self, event):
+        if event.src_path == ruta_archivo_log:
+            nuevas_lineas = obtener_nuevas_lineas(ruta_archivo_log)
+            for linea in nuevas_lineas:
+                await enviar_mensaje(linea)
 
+# Función para obtener las nuevas líneas agregadas al archivo de registro
+def obtener_nuevas_lineas(ruta):
+    with open(ruta, 'r') as archivo:
+        lineas = archivo.readlines()
+        return lineas
 
-# Evento de inicio del bot
+# Función para enviar mensajes al canal de Discord
+async def enviar_mensaje(contenido):
+    channel_id = TU_ID_DE_CANAL  # Reemplaza con el ID del canal
+    channel = bot.get_channel(channel_id)
+    await channel.send(contenido)
+
 @bot.event
 async def on_ready():
     print(f'Bot conectado como {bot.user.name}')
-    # Inicia la función de enviar mensajes automáticos
+    
+    # Inicializa el observador y lo asocia con la clase de manejo de eventos
+    observador = Observer()
+    observador.schedule(ManejadorDeEventos(), path=ruta_archivo_log)
+    observador.start()
+
+    # Inicia la tarea para enviar mensajes automáticos
     bot.loop.create_task(send_auto_message())
 
-# Inicia el bot con el token
-bot.run('token')
+bot.run('')
