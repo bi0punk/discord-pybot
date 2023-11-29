@@ -44,12 +44,27 @@ class ManejadorDeEventos(FileSystemEventHandler):
                     last_sent_message = mensaje
 
 def obtener_nuevos_mensajes(ruta):
+    palabras_clave = ["joined the game", 
+                    "was slain by", 
+                    "lost connection", 
+                    "left the game", 
+                    "has made the advancement", 
+                    "fell from a high place", 
+                    "drowned"]
+
     with open(ruta, 'r') as archivo:
         lineas = archivo.readlines()
-    
-        mensajes_filtrados = [linea.strip() for linea in lineas if "joined the game" in linea or "was slain by" in linea or "lost connection" in linea or "left the game" in linea or "has made the advancement" in linea]
 
-        return mensajes_filtrados
+    mensajes_filtrados = []
+
+    for linea in lineas:
+        for palabra_clave in palabras_clave:
+            if palabra_clave in linea:
+                mensajes_filtrados.append(linea.strip())
+                break  # Termina el bucle interno si se encuentra una palabra clave
+
+    return mensajes_filtrados
+
 async def enviar_mensaje(channel, contenido):
     embed = discord.Embed(
         title="Nuevo mensaje del servidor de Minecraft",
