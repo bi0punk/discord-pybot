@@ -9,10 +9,10 @@ intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-ruta_archivo_log = 'RUTA_AL_ARCHIVO_DE_LOG_DEL_SERVIDOR'  # Reemplaza con la ruta correcta
+ruta_archivo_log = '/root/server/logs/latest.log'  # Reemplaza con la ruta correcta
 
 async def send_auto_message():
-    channel_id = TU_ID_DE_CANAL  # Reemplaza con el ID del canal
+    channel_id = 1103919972771708949  # Reemplaza con el ID del canal
     channel = bot.get_channel(channel_id)
 
     while True:
@@ -38,7 +38,7 @@ def obtener_nuevos_mensajes(ruta):
         lineas = archivo.readlines()
         
         # Filtra las líneas que contienen información sobre la entrada, derrota, pérdida de conexión o salida de jugadores
-        mensajes_filtrados = [linea.strip() for linea in lineas if "joined the game" in linea or "was slain by" in linea or "lost connection" in linea or "left the game" in linea]
+        mensajes_filtrados = [linea.strip() for linea in lineas if "joined the game" in linea or "was slain by" in linea or "lost connection" in linea or "left the game" in linea or "has made the advancement" in linea]
 
         return mensajes_filtrados
 
