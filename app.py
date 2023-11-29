@@ -9,11 +9,9 @@ intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-ruta_archivo_log = '/root/server/logs/latest.log'  # Reemplaza con la ruta correcta
-historial_mensajes_archivo = 'historial_mensajes.txt'  # Nombre del archivo de historial
+ruta_archivo_log = '/root/server/logs/latest.log'  
+historial_mensajes_archivo = 'historial_mensajes.txt'  
 historial_mensajes = set()
-
-# Cargar historial de mensajes desde el archivo
 try:
     with open(historial_mensajes_archivo, 'r') as archivo:
         historial_mensajes = set(archivo.read().splitlines())
@@ -21,21 +19,17 @@ except FileNotFoundError:
     pass
 
 async def send_auto_message():
-    channel_id =   # Reemplaza con el ID del canal
+    channel_id =   
     channel = bot.get_channel(channel_id)
 
     while True:
-        await asyncio.sleep(30)  # Espera 30 segundos antes de verificar el archivo
+        await asyncio.sleep(30)  
 
-        # Verifica si hay nuevos mensajes en el archivo de registro relacionados con jugadores
         nuevos_mensajes = obtener_nuevos_mensajes(ruta_archivo_log)
         for mensaje in nuevos_mensajes:
-            # Verifica si el mensaje ya ha sido enviado antes
             if mensaje not in historial_mensajes:
                 await enviar_mensaje(channel, mensaje)
                 historial_mensajes.add(mensaje)
-
-                # Guarda el historial actualizado en el archivo
                 with open(historial_mensajes_archivo, 'a') as archivo:
                     archivo.write(mensaje + '\n')
 
@@ -43,15 +37,11 @@ class ManejadorDeEventos(FileSystemEventHandler):
     async def on_modified(self, event):
         nuevos_mensajes = obtener_nuevos_mensajes(ruta_archivo_log)
         for mensaje in nuevos_mensajes:
-            channel_id = TU_ID_DE_CANAL  # Reemplaza con el ID del canal
+            channel_id = TU_ID_DE_CANAL  
             channel = bot.get_channel(channel_id)
-            
-            # Verifica si el mensaje ya ha sido enviado antes
             if mensaje not in historial_mensajes:
                 await enviar_mensaje(channel, mensaje)
                 historial_mensajes.add(mensaje)
-
-                # Guarda el historial actualizado en el archivo
                 with open(historial_mensajes_archivo, 'a') as archivo:
                     archivo.write(mensaje + '\n')
 
@@ -75,8 +65,7 @@ def obtener_nuevos_mensajes(ruta):
         for palabra_clave in palabras_clave:
             if palabra_clave in linea:
                 mensajes_filtrados.append(linea.strip())
-                break  # Termina el bucle interno si se encuentra una palabra clave
-
+                break  
     return mensajes_filtrados
 
 async def enviar_mensaje(channel, contenido):
