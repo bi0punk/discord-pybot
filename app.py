@@ -27,8 +27,6 @@ async def send_auto_message():
             await channel.send(embed=embed, file=file)
 
         await asyncio.sleep(60)
-
-# Clase para manejar eventos de cambio en el archivo de registro
 class ManejadorDeEventos(FileSystemEventHandler):
     async def on_modified(self, event):
         if event.src_path == ruta_archivo_log:
@@ -36,13 +34,10 @@ class ManejadorDeEventos(FileSystemEventHandler):
             for linea in nuevas_lineas:
                 await enviar_mensaje(linea)
 
-# Función para obtener las nuevas líneas agregadas al archivo de registro
 def obtener_nuevas_lineas(ruta):
     with open(ruta, 'r') as archivo:
         lineas = archivo.readlines()
         return lineas
-
-# Función para enviar mensajes al canal de Discord
 async def enviar_mensaje(contenido):
     channel_id = TU_ID_DE_CANAL  # Reemplaza con el ID del canal
     channel = bot.get_channel(channel_id)
