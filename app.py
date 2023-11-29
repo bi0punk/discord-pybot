@@ -16,32 +16,43 @@ async def send_auto_message():
     channel = bot.get_channel(channel_id)
 
     while True:
-        now = datetime.now()
-        current_time = now.strftime("%H:%M")
+        await asyncio.sleep(60)  # Espera 60 segundos antes de verificar el archivo
 
-        if current_time == "23:20":
-            embed = discord.Embed(title="¡Qué pasa con las!", description="")
-            file = discord.File('img/FMO2fvaXIAkfjPR.jpeg', filename='FMO2fvaXIAkfjPR.jpeg')
-            embed.set_image(url="attachment://FMO2fvaXIAkfjPR.jpeg")
+        # Verifica si hay un nuevo mensaje en el archivo de registro
+        nuevo_mensaje = obtener_ultimo_mensaje(ruta_archivo_log)
+        if nuevo_mensaje:
+            await enviar_ultimo_mensaje(channel, nuevo_mensaje)
 
-            await channel.send(embed=embed, file=file)
-
-        await asyncio.sleep(60)
 class ManejadorDeEventos(FileSystemEventHandler):
     async def on_modified(self, event):
         if event.src_path == ruta_archivo_log:
-            nuevas_lineas = obtener_nuevas_lineas(ruta_archivo_log)
-            for linea in nuevas_lineas:
-                await enviar_mensaje(linea)
+            # Verifica si hay un nuevo mensaje en el archivo de registro
+            nuevo_mensaje = obtener_ultimo_mensaje(ruta_archivo_log)
+            if nuevo_mensaje:
+                channel_id = TU_ID_DE_CANAL  # Reemplaza con el ID del canal
+                channel = bot.get_channel(channel_id)
+                await enviar_ultimo_mensaje(channel, nuevo_mensaje)
 
-def obtener_nuevas_lineas(ruta):
+def obtener_ultimo_mensaje(ruta):
     with open(ruta, 'r') as archivo:
         lineas = archivo.readlines()
-        return lineas
-async def enviar_mensaje(contenido):
-    channel_id = TU_ID_DE_CANAL  # Reemplaza con el ID del canal
-    channel = bot.get_channel(channel_id)
-    await channel.send(contenido)
+        if lineas:
+            return lineas[-1].strip()
+        else:
+            return None
+
+async def enviar_ultimo_mensaje(channel, contenido):
+    embed = discord.Embed(
+        title="Nuevo mensaje del servidor de Minecraft",
+        description=f"```\n{contenido}\n```",
+        color=0x00b0f4,
+        timestamp=datetime.now()
+    )
+
+    embed.set_author(name="Info Minecraft World")
+    embed.set_footer(icon_url="https://slate.dan.onl/slate.png")
+
+    await channel.send(embed=embed)
 
 @bot.event
 async def on_ready():
@@ -55,4 +66,4 @@ async def on_ready():
     # Inicia la tarea para enviar mensajes automáticos
     bot.loop.create_task(send_auto_message())
 
-bot.run('')
+bot.run('')  # Coloca tu token aquí
