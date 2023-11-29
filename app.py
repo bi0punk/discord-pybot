@@ -19,7 +19,7 @@ async def send_auto_message():
     channel = bot.get_channel(channel_id)
 
     while True:
-        await asyncio.sleep(60)  # Espera 60 segundos antes de verificar el archivo
+        await asyncio.sleep(30)  # Espera 60 segundos antes de verificar el archivo
 
         # Verifica si hay nuevos mensajes en el archivo de registro relacionados con jugadores
         nuevos_mensajes = obtener_nuevos_mensajes(ruta_archivo_log)
