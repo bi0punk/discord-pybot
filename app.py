@@ -23,7 +23,7 @@ async def send_auto_message():
     channel = bot.get_channel(channel_id)
 
     while True:
-        await asyncio.sleep(30)  
+        await asyncio.sleep(60)  
 
         nuevos_mensajes = obtener_nuevos_mensajes(ruta_archivo_log)
         for mensaje in nuevos_mensajes:
