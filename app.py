@@ -2,10 +2,16 @@ import discord
 import asyncio
 import os
 import re
+import nltk
+from nltk.chat.util import Chat, reflections
 from dotenv import load_dotenv
 from discord.ext import commands
 from datetime import datetime
 from fractions import Fraction
+
+# Descargamos los datos necesarios de NLTK
+nltk.download('punkt')
+nltk.download('wordnet')
 
 load_dotenv()
 
@@ -17,18 +23,25 @@ intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
+# Definimos pares de patrones y respuestas para el chatbot
+pairs = [
+    (r'Hola|hola|Hi|hi|Hey|hey', ['Hola, ¿cómo estás?', '¡Hola! ¿Cómo te puedo ayudar?']),
+    (r'¿Cuál es tu nombre\??', ['Soy un bot de Discord. ¿Cuál es tu nombre?']),
+    (r'¿Cómo estás\??', ['Estoy bien, gracias por preguntar.', '¡Estoy genial!']),
+    (r'¿Qué puedes hacer\??', ['Puedo ayudarte con cálculos matemáticos y responder preguntas básicas.']),
+    (r'Adiós|adiós|adios|Bye|bye', ['Adiós, ¡que tengas un buen día!', '¡Hasta luego!'])
+]
+
+chatbot = Chat(pairs, reflections)
+
 def evaluar_expresion_matematica(expresion):
-    # Reemplazamos fracciones de la forma 'a/b' por 'Fraction(a, b)'
     expresion = re.sub(r'(\d+)/(\d+)', r'Fraction(\1, \2)', expresion)
     print("Expresión evaluada:", expresion)
     
-    # Verificamos explícitamente la división por cero
     if re.search(r'Fraction\(\d+, 0\)', expresion) or re.search(r'/\s*0', expresion):
         return "Error: División por cero.", None
     
-    # Modificamos el patrón de la expresión regular para permitir fracciones y caracteres válidos
-    if re.match(r"^[\d()+\-*/\sFraction,]+$", expresion):  # Agregamos "Fraction" y ","
-        try:
+    if re.match(r"^[\d()+\-*/\sFraction,]+$", expresion):  
             inicio = datetime.now()
             # Evaluamos la expresión en un entorno seguro
             resultado = eval(expresion, {"Fraction": Fraction})
@@ -54,6 +67,14 @@ async def calcular(ctx, *, expresion):
         await ctx.send(embed=embed)
     else:
         await ctx.send("La expresión no es válida.")
+
+@bot.command()
+async def responder(ctx, *, pregunta):
+    respuesta = chatbot.respond(pregunta)
+    if respuesta:
+        await ctx.send(respuesta)
+    else:
+        await ctx.send("No tengo una respuesta para eso.")
 
 @bot.event
 async def on_ready():
