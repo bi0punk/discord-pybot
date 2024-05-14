@@ -10,6 +10,8 @@ from fractions import Fraction
 load_dotenv()
 
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
+OWNER_ID = int(os.getenv('OWNER_ID'))
+CHANNEL_ID = int(os.getenv('CHANNEL_ID'))
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -22,9 +24,10 @@ def evaluar_expresion_matematica(expresion):
     
     # Verificamos explícitamente la división por cero
     if re.search(r'Fraction\(\d+, 0\)', expresion) or re.search(r'/\s*0', expresion):
-        return "División por cero, en este universo, No Existe.", None
- 
-    if re.match(r"^[\d()+\-*/\sFraction,]+$", expresion):  
+        return "Error: División por cero.", None
+    
+    # Modificamos el patrón de la expresión regular para permitir fracciones y caracteres válidos
+    if re.match(r"^[\d()+\-*/\sFraction,]+$", expresion):  # Agregamos "Fraction" y ","
         try:
             inicio = datetime.now()
             # Evaluamos la expresión en un entorno seguro
@@ -45,7 +48,7 @@ async def calcular(ctx, *, expresion):
                               description=f"```md\n# Operación\n{expresion}\n\n# Resultado\n{resultado}\n```",
                               colour=0x00b0f4,
                               timestamp=datetime.now())
-        #embed.set_author(name="Math Bot")
+        embed.set_author(name="Math Bot")
         embed.set_footer(text=f"Tiempo de ejecución: {tiempo_ejecucion} segundos",
                          icon_url="https://slate.dan.onl/slate.png")
         await ctx.send(embed=embed)
@@ -59,14 +62,13 @@ async def on_ready():
 
 @bot.command()
 async def saludo(ctx):
-    if ctx.author.id == 380118893181534219:  
+    if ctx.author.id == OWNER_ID:
         await ctx.send(f'Señor')
     else:
         await ctx.send(f'Hola {ctx.author.mention} ¿cómo estás?')
 
 async def send_auto_message():
-    channel_id = 1103919972771708949
-    channel = bot.get_channel(channel_id)
+    channel = bot.get_channel(CHANNEL_ID)
 
     while True:
         await asyncio.sleep(600)  
