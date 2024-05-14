@@ -42,6 +42,7 @@ def evaluar_expresion_matematica(expresion):
         return "Error: División por cero.", None
     
     if re.match(r"^[\d()+\-*/\sFraction,]+$", expresion):  
+        try:
             inicio = datetime.now()
             # Evaluamos la expresión en un entorno seguro
             resultado = eval(expresion, {"Fraction": Fraction})
