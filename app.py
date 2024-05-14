@@ -2,30 +2,46 @@ import discord
 import asyncio
 import os
 import re
+import nltk
+from nltk.chat.util import Chat, reflections
 from dotenv import load_dotenv
 from discord.ext import commands
 from datetime import datetime
 from fractions import Fraction
 
+# Descargamos los datos necesarios de NLTK
+nltk.download('punkt')
+nltk.download('wordnet')
+
 load_dotenv()
 
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
+OWNER_ID = int(os.getenv('OWNER_ID'))
+CHANNEL_ID = int(os.getenv('CHANNEL_ID'))
 
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
+# Definimos pares de patrones y respuestas para el chatbot
+pairs = [
+    (r'Hola|hola|Hi|hi|Hey|hey', ['Hola, ¿cómo estás?', '¡Hola! ¿Cómo te puedo ayudar?']),
+    (r'¿Cuál es tu nombre\??', ['Soy un bot de Discord. ¿Cuál es tu nombre?']),
+    (r'¿Cómo estás\??', ['Estoy bien, gracias por preguntar.', '¡Estoy genial!']),
+    (r'¿Qué puedes hacer\??', ['Puedo ayudarte con cálculos matemáticos y responder preguntas básicas.']),
+    (r'Adiós|adiós|adios|Bye|bye', ['Adiós, ¡que tengas un buen día!', '¡Hasta luego!'])
+]
+
+chatbot = Chat(pairs, reflections)
+
 def evaluar_expresion_matematica(expresion):
-    # Reemplazamos fracciones de la forma 'a/b' por 'Fraction(a, b)'
     expresion = re.sub(r'(\d+)/(\d+)', r'Fraction(\1, \2)', expresion)
     print("Expresión evaluada:", expresion)
     
-    # Verificamos explícitamente la división por cero
     if re.search(r'Fraction\(\d+, 0\)', expresion) or re.search(r'/\s*0', expresion):
-        return "División por cero, en este universo, No Existe.", None
- 
+        return "Error: División por cero.", None
+    
     if re.match(r"^[\d()+\-*/\sFraction,]+$", expresion):  
-        try:
             inicio = datetime.now()
             # Evaluamos la expresión en un entorno seguro
             resultado = eval(expresion, {"Fraction": Fraction})
@@ -45,12 +61,20 @@ async def calcular(ctx, *, expresion):
                               description=f"```md\n# Operación\n{expresion}\n\n# Resultado\n{resultado}\n```",
                               colour=0x00b0f4,
                               timestamp=datetime.now())
-        #embed.set_author(name="Math Bot")
+        embed.set_author(name="Math Bot")
         embed.set_footer(text=f"Tiempo de ejecución: {tiempo_ejecucion} segundos",
                          icon_url="https://slate.dan.onl/slate.png")
         await ctx.send(embed=embed)
     else:
         await ctx.send("La expresión no es válida.")
+
+@bot.command()
+async def responder(ctx, *, pregunta):
+    respuesta = chatbot.respond(pregunta)
+    if respuesta:
+        await ctx.send(respuesta)
+    else:
+        await ctx.send("No tengo una respuesta para eso.")
 
 @bot.event
 async def on_ready():
@@ -59,14 +83,13 @@ async def on_ready():
 
 @bot.command()
 async def saludo(ctx):
-    if ctx.author.id == 380118893181534219:  
+    if ctx.author.id == OWNER_ID:
         await ctx.send(f'Señor')
     else:
         await ctx.send(f'Hola {ctx.author.mention} ¿cómo estás?')
 
 async def send_auto_message():
-    channel_id = 1103919972771708949
-    channel = bot.get_channel(channel_id)
+    channel = bot.get_channel(CHANNEL_ID)
 
     while True:
         await asyncio.sleep(600)  
