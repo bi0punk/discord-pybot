@@ -93,7 +93,7 @@ async def send_auto_message():
     channel = bot.get_channel(CHANNEL_ID)
 
     while True:
-        await asyncio.sleep(600)  
-        await channel.send("Este es un mensaje automático.")
+        await asyncio.sleep(60)  
+        await channel.send("/play https://www.youtube.com/watch?v=vT0oJWPbIZs&ab_channel=Ozuna")
 
 bot.run(DISCORD_TOKEN)
