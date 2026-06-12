@@ -10,8 +10,11 @@ from datetime import datetime
 from fractions import Fraction
 
 # Descargamos los datos necesarios de NLTK
-nltk.download('punkt')
-nltk.download('wordnet')
+for pkg in ['punkt', 'wordnet']:
+    try:
+        nltk.data.find(f'tokenizers/{pkg}')
+    except LookupError:
+        nltk.download(pkg)
 
 load_dotenv()
 
