@@ -2,6 +2,8 @@ import discord
 import asyncio
 import os
 import re
+import ast
+import operator
 import nltk
 from nltk.chat.util import Chat, reflections
 from dotenv import load_dotenv
@@ -38,24 +40,42 @@ pairs = [
 chatbot = Chat(pairs, reflections)
 
 def evaluar_expresion_matematica(expresion):
-    expresion = re.sub(r'(\d+)/(\d+)', r'Fraction(\1, \2)', expresion)
-    print("Expresión evaluada:", expresion)
-    
-    if re.search(r'Fraction\(\d+, 0\)', expresion) or re.search(r'/\s*0', expresion):
+    try:
+        inicio = datetime.now()
+        expresion_safe = expresion.replace("×", "*").replace("÷", "/")
+        tree = ast.parse(expresion_safe, mode='eval')
+        resultado = safe_eval_ast(tree.body)
+        fin = datetime.now()
+        tiempo_ejecucion = (fin - inicio).total_seconds()
+        return str(resultado), tiempo_ejecucion
+    except ZeroDivisionError:
         return "Error: División por cero.", None
-    
-    if re.match(r"^[\d()+\-*/\sFraction,]+$", expresion):  
-        try:
-            inicio = datetime.now()
-            # Evaluamos la expresión en un entorno seguro
-            resultado = eval(expresion, {"Fraction": Fraction})
-            fin = datetime.now()
-            tiempo_ejecucion = (fin - inicio).total_seconds()
-            return str(resultado), tiempo_ejecucion
-        except Exception as e:
-            return f"Error al evaluar la expresión: {e}", None
-    else:
-        return "La expresión no es válida.", None
+    except Exception as e:
+        return f"Error al evaluar la expresión: {e}", None
+
+def safe_eval_ast(node):
+    allowed_ops = {
+        ast.Add: operator.add, ast.Sub: operator.sub,
+        ast.Mult: operator.mul, ast.Div: operator.truediv,
+        ast.Pow: operator.pow, ast.USub: operator.neg, ast.UAdd: operator.pos,
+    }
+    if isinstance(node, ast.Expression):
+        return safe_eval_ast(node.body)
+    if isinstance(node, ast.Constant):
+        if isinstance(node.value, (int, float)):
+            return node.value
+        raise ValueError("Tipo no soportado")
+    if isinstance(node, ast.BinOp):
+        op_func = allowed_ops.get(type(node.op))
+        if not op_func:
+            raise ValueError("Operación no soportada")
+        return op_func(safe_eval_ast(node.left), safe_eval_ast(node.right))
+    if isinstance(node, ast.UnaryOp):
+        op_func = allowed_ops.get(type(node.op))
+        if not op_func:
+            raise ValueError("Operación no soportada")
+        return op_func(safe_eval_ast(node.operand))
+    raise ValueError("Expresión no válida")
 
 @bot.command()
 async def calcular(ctx, *, expresion):
