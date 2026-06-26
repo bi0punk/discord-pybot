@@ -19,8 +19,13 @@ for pkg in ['punkt', 'wordnet']:
 load_dotenv()
 
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
-OWNER_ID = int(os.getenv('OWNER_ID'))
-CHANNEL_ID = int(os.getenv('CHANNEL_ID'))
+if not DISCORD_TOKEN:
+    raise ValueError("DISCORD_TOKEN no está definido en el archivo .env")
+try:
+    OWNER_ID = int(os.getenv('OWNER_ID'))
+    CHANNEL_ID = int(os.getenv('CHANNEL_ID'))
+except (TypeError, ValueError):
+    raise ValueError("OWNER_ID y CHANNEL_ID deben ser números enteros válidos en el archivo .env")
 
 intents = discord.Intents.default()
 intents.message_content = True
