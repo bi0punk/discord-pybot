@@ -10,6 +10,7 @@ from discord.ext import commands
 from datetime import datetime
 
 def asegurar_datos_nltk():
+    """Descarga los datos necesarios de NLTK si no están presentes."""
     for pkg in ['punkt', 'wordnet']:
         try:
             nltk.data.find(f'tokenizers/{pkg}')
@@ -45,6 +46,7 @@ pairs = [
 chatbot = Chat(pairs, reflections)
 
 def evaluar_expresion_matematica(expresion):
+    """Evalúa una expresión matemática de forma segura usando AST."""
     try:
         inicio = datetime.now()
         expresion_safe = expresion.replace("×", "*").replace("÷", "/")
@@ -59,6 +61,7 @@ def evaluar_expresion_matematica(expresion):
         return f"Error al evaluar la expresión: {e}", None
 
 def safe_eval_ast(node):
+    """Evalúa un nodo AST de forma segura con operaciones permitidas."""
     allowed_ops = {
         ast.Add: operator.add, ast.Sub: operator.sub,
         ast.Mult: operator.mul, ast.Div: operator.truediv,
@@ -84,6 +87,7 @@ def safe_eval_ast(node):
 
 @bot.command()
 async def calcular(ctx, *, expresion):
+    """Evalúa una expresión matemática y muestra el resultado."""
     resultado, tiempo_ejecucion = evaluar_expresion_matematica(expresion)
     if resultado:
         embed = discord.Embed(title="Calculadora",
@@ -99,6 +103,7 @@ async def calcular(ctx, *, expresion):
 
 @bot.command()
 async def responder(ctx, *, pregunta):
+    """Responde preguntas usando el chatbot NLTK."""
     respuesta = chatbot.respond(pregunta)
     if respuesta:
         await ctx.send(respuesta)
@@ -107,17 +112,20 @@ async def responder(ctx, *, pregunta):
 
 @bot.event
 async def on_ready():
+    """Evento ejecutado cuando el bot se conecta correctamente."""
     print(f'Bot conectado como {bot.user.name}')
     bot.loop.create_task(send_auto_message())
 
 @bot.command()
 async def saludo(ctx):
+    """Saluda al usuario, con tratamiento especial para el dueño."""
     if ctx.author.id == OWNER_ID:
         await ctx.send(f'Señor')
     else:
         await ctx.send(f'Hola {ctx.author.mention} ¿cómo estás?')
 
 async def send_auto_message():
+    """Envía un mensaje automático cada 60 segundos al canal configurado."""
     channel = bot.get_channel(CHANNEL_ID)
 
     while True:
