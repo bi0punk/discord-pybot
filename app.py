@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from discord.ext import commands
 from datetime import datetime
 
-def asegurar_datos_nltk():
+def asegurar_datos_nltk() -> None:
     """Descarga los datos necesarios de NLTK si no están presentes."""
     for pkg in ['punkt', 'wordnet']:
         try:
@@ -45,7 +45,7 @@ pairs = [
 
 chatbot = Chat(pairs, reflections)
 
-def evaluar_expresion_matematica(expresion):
+def evaluar_expresion_matematica(expresion: str) -> tuple:
     """Evalúa una expresión matemática de forma segura usando AST."""
     try:
         inicio = datetime.now()
@@ -60,7 +60,7 @@ def evaluar_expresion_matematica(expresion):
     except Exception as e:
         return f"Error al evaluar la expresión: {e}", None
 
-def safe_eval_ast(node):
+def safe_eval_ast(node: ast.AST) -> float:
     """Evalúa un nodo AST de forma segura con operaciones permitidas."""
     allowed_ops = {
         ast.Add: operator.add, ast.Sub: operator.sub,
@@ -86,7 +86,7 @@ def safe_eval_ast(node):
     raise ValueError("Expresión no válida")
 
 @bot.command()
-async def calcular(ctx, *, expresion):
+async def calcular(ctx: commands.Context, *, expresion: str) -> None:
     """Evalúa una expresión matemática y muestra el resultado."""
     resultado, tiempo_ejecucion = evaluar_expresion_matematica(expresion)
     if resultado:
@@ -102,7 +102,7 @@ async def calcular(ctx, *, expresion):
         await ctx.send("La expresión no es válida.")
 
 @bot.command()
-async def responder(ctx, *, pregunta):
+async def responder(ctx: commands.Context, *, pregunta: str) -> None:
     """Responde preguntas usando el chatbot NLTK."""
     respuesta = chatbot.respond(pregunta)
     if respuesta:
@@ -111,20 +111,20 @@ async def responder(ctx, *, pregunta):
         await ctx.send("No tengo una respuesta para eso.")
 
 @bot.event
-async def on_ready():
+async def on_ready() -> None:
     """Evento ejecutado cuando el bot se conecta correctamente."""
     print(f'Bot conectado como {bot.user.name}')
     bot.loop.create_task(send_auto_message())
 
 @bot.command()
-async def saludo(ctx):
+async def saludo(ctx: commands.Context) -> None:
     """Saluda al usuario, con tratamiento especial para el dueño."""
     if ctx.author.id == OWNER_ID:
         await ctx.send(f'Señor')
     else:
         await ctx.send(f'Hola {ctx.author.mention} ¿cómo estás?')
 
-async def send_auto_message():
+async def send_auto_message() -> None:
     """Envía un mensaje automático cada 60 segundos al canal configurado."""
     channel = bot.get_channel(CHANNEL_ID)
 
