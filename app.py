@@ -9,12 +9,14 @@ from dotenv import load_dotenv
 from discord.ext import commands
 from datetime import datetime
 
-# Descargamos los datos necesarios de NLTK
-for pkg in ['punkt', 'wordnet']:
-    try:
-        nltk.data.find(f'tokenizers/{pkg}')
-    except LookupError:
-        nltk.download(pkg)
+def asegurar_datos_nltk():
+    for pkg in ['punkt', 'wordnet']:
+        try:
+            nltk.data.find(f'tokenizers/{pkg}')
+        except LookupError:
+            nltk.download(pkg)
+
+asegurar_datos_nltk()
 
 load_dotenv()
 
