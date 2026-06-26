@@ -135,4 +135,10 @@ async def enviar_mensaje_auto() -> None:
         await asyncio.sleep(60)
         await channel.send("/play https://www.youtube.com/watch?v=vT0oJWPbIZs&ab_channel=Ozuna")
 
-bot.run(DISCORD_TOKEN)
+def main() -> None:
+    """Punto de entrada principal del bot."""
+    bot.run(DISCORD_TOKEN)
+
+
+if __name__ == "__main__":
+    main()
