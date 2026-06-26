@@ -30,6 +30,9 @@ try:
 except (TypeError, ValueError):
     raise ValueError("OWNER_ID y CHANNEL_ID deben ser números enteros válidos en el archivo .env")
 
+URL_AUTO = "/play https://www.youtube.com/watch?v=vT0oJWPbIZs&ab_channel=Ozuna"
+ICON_URL = "https://slate.dan.onl/slate.png"
+
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
@@ -97,7 +100,7 @@ async def calcular(ctx: commands.Context, *, expresion: str) -> None:
         embed.set_author(name="Math Bot")
         tiempo_str = f"{tiempo_ejecucion:.4f}" if tiempo_ejecucion is not None else "N/A"
         embed.set_footer(text=f"Tiempo de ejecución: {tiempo_str} segundos",
-                         icon_url="https://slate.dan.onl/slate.png")
+                         icon_url=ICON_URL)
         await ctx.send(embed=embed)
     else:
         await ctx.send("La expresión no es válida.")
@@ -134,7 +137,7 @@ async def enviar_mensaje_auto() -> None:
 
     while True:
         await asyncio.sleep(60)
-        await channel.send("/play https://www.youtube.com/watch?v=vT0oJWPbIZs&ab_channel=Ozuna")
+        await channel.send(URL_AUTO)
 
 def main() -> None:
     """Punto de entrada principal del bot."""
