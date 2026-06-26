@@ -127,9 +127,12 @@ async def saludo(ctx: commands.Context) -> None:
 async def send_auto_message() -> None:
     """Envía un mensaje automático cada 60 segundos al canal configurado."""
     channel = bot.get_channel(CHANNEL_ID)
+    if channel is None:
+        print("Error: No se pudo obtener el canal configurado.")
+        return
 
     while True:
-        await asyncio.sleep(60)  
+        await asyncio.sleep(60)
         await channel.send("/play https://www.youtube.com/watch?v=vT0oJWPbIZs&ab_channel=Ozuna")
 
 bot.run(DISCORD_TOKEN)
