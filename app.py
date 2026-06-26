@@ -51,7 +51,7 @@ def evaluar_expresion_matematica(expresion: str) -> tuple:
         inicio = datetime.now()
         expresion_safe = expresion.replace("×", "*").replace("÷", "/")
         tree = ast.parse(expresion_safe, mode='eval')
-        resultado = safe_eval_ast(tree.body)
+        resultado = evaluar_ast_seguro(tree.body)
         fin = datetime.now()
         tiempo_ejecucion = (fin - inicio).total_seconds()
         return str(resultado), tiempo_ejecucion
@@ -60,7 +60,7 @@ def evaluar_expresion_matematica(expresion: str) -> tuple:
     except Exception as e:
         return None, None
 
-def safe_eval_ast(node: ast.AST) -> float:
+def evaluar_ast_seguro(node: ast.AST) -> float:
     """Evalúa un nodo AST de forma segura con operaciones permitidas."""
     allowed_ops = {
         ast.Add: operator.add, ast.Sub: operator.sub,
@@ -68,7 +68,7 @@ def safe_eval_ast(node: ast.AST) -> float:
         ast.Pow: operator.pow, ast.USub: operator.neg, ast.UAdd: operator.pos,
     }
     if isinstance(node, ast.Expression):
-        return safe_eval_ast(node.body)
+        return evaluar_ast_seguro(node.body)
     if isinstance(node, ast.Constant):
         if isinstance(node.value, (int, float)):
             return node.value
@@ -77,12 +77,12 @@ def safe_eval_ast(node: ast.AST) -> float:
         op_func = allowed_ops.get(type(node.op))
         if not op_func:
             raise ValueError("Operación no soportada")
-        return op_func(safe_eval_ast(node.left), safe_eval_ast(node.right))
+        return op_func(evaluar_ast_seguro(node.left), evaluar_ast_seguro(node.right))
     if isinstance(node, ast.UnaryOp):
         op_func = allowed_ops.get(type(node.op))
         if not op_func:
             raise ValueError("Operación no soportada")
-        return op_func(safe_eval_ast(node.operand))
+        return op_func(evaluar_ast_seguro(node.operand))
     raise ValueError("Expresión no válida")
 
 @bot.command()
@@ -114,7 +114,7 @@ async def responder(ctx: commands.Context, *, pregunta: str) -> None:
 async def on_ready() -> None:
     """Evento ejecutado cuando el bot se conecta correctamente."""
     print(f'Bot conectado como {bot.user.name}')
-    bot.loop.create_task(send_auto_message())
+    bot.loop.create_task(enviar_mensaje_auto())
 
 @bot.command()
 async def saludo(ctx: commands.Context) -> None:
@@ -124,7 +124,7 @@ async def saludo(ctx: commands.Context) -> None:
     else:
         await ctx.send(f'Hola {ctx.author.mention} ¿cómo estás?')
 
-async def send_auto_message() -> None:
+async def enviar_mensaje_auto() -> None:
     """Envía un mensaje automático cada 60 segundos al canal configurado."""
     channel = bot.get_channel(CHANNEL_ID)
     if channel is None:
