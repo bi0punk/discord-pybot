@@ -56,9 +56,9 @@ def evaluar_expresion_matematica(expresion: str) -> tuple:
         tiempo_ejecucion = (fin - inicio).total_seconds()
         return str(resultado), tiempo_ejecucion
     except ZeroDivisionError:
-        return "Error: División por cero.", None
+        return None, None
     except Exception as e:
-        return f"Error al evaluar la expresión: {e}", None
+        return None, None
 
 def safe_eval_ast(node: ast.AST) -> float:
     """Evalúa un nodo AST de forma segura con operaciones permitidas."""
@@ -89,7 +89,7 @@ def safe_eval_ast(node: ast.AST) -> float:
 async def calcular(ctx: commands.Context, *, expresion: str) -> None:
     """Evalúa una expresión matemática y muestra el resultado."""
     resultado, tiempo_ejecucion = evaluar_expresion_matematica(expresion)
-    if resultado:
+    if resultado is not None:
         embed = discord.Embed(title="Calculadora",
                               description=f"```md\n# Operación\n{expresion}\n\n# Resultado\n{resultado}\n```",
                               colour=0x00b0f4,
