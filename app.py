@@ -95,7 +95,8 @@ async def calcular(ctx: commands.Context, *, expresion: str) -> None:
                               colour=0x00b0f4,
                               timestamp=datetime.now())
         embed.set_author(name="Math Bot")
-        embed.set_footer(text=f"Tiempo de ejecución: {tiempo_ejecucion} segundos",
+        tiempo_str = f"{tiempo_ejecucion:.4f}" if tiempo_ejecucion is not None else "N/A"
+        embed.set_footer(text=f"Tiempo de ejecución: {tiempo_str} segundos",
                          icon_url="https://slate.dan.onl/slate.png")
         await ctx.send(embed=embed)
     else:
