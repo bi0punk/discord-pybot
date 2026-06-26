@@ -1,7 +1,6 @@
 import discord
 import asyncio
 import os
-import re
 import ast
 import operator
 import nltk
@@ -9,7 +8,6 @@ from nltk.chat.util import Chat, reflections
 from dotenv import load_dotenv
 from discord.ext import commands
 from datetime import datetime
-from fractions import Fraction
 
 # Descargamos los datos necesarios de NLTK
 for pkg in ['punkt', 'wordnet']:
