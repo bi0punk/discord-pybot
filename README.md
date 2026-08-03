@@ -4,7 +4,7 @@ Discord bot with mathematical calculation (safe AST evaluator), NLTK-based chatb
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.11+-blue)](https://python.org)
-[![CI](https://github.com/tu-usuario/discord-pybot/actions/workflows/ci.yml/badge.svg)](https://github.com/tu-usuario/discord-pybot/actions/workflows/ci.yml)
+[![CI](https://github.com/bi0punk/discord-pybot/actions/workflows/ci.yml/badge.svg)](https://github.com/bi0punk/discord-pybot/actions/workflows/ci.yml)
 
 ## Tabla de Contenidos
 
@@ -55,7 +55,7 @@ discord-pybot/
 ## Instalación
 
 ```bash
-git clone https://github.com/tu-usuario/discord-pybot.git
+git clone https://github.com/bi0punk/discord-pybot.git
 cd discord-pybot
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
