@@ -1,56 +1,78 @@
 # discord-pybot
 
-Discord bot with mathematical calculation (safe AST evaluator), NLTK-based chatbot conversation, scheduled auto-messaging, and custom commands.
+Bot de Discord en Python con cálculo matemático seguro (evaluador AST), conversación por chatbot NLTK, auto-mensajería programada y comandos personalizados.
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.11+-blue)](https://python.org)
+[![discord.py](https://img.shields.io/badge/discord.py-2.3-5865F2?logo=discord)](https://discordpy.readthedocs.io/)
 [![CI](https://github.com/bi0punk/discord-pybot/actions/workflows/ci.yml/badge.svg)](https://github.com/bi0punk/discord-pybot/actions/workflows/ci.yml)
 
-## Tabla de Contenidos
+## Contenido
 
 - [Características](#características)
-- [Stack](#stack)
 - [Arquitectura](#arquitectura)
+- [Stack](#stack)
+- [Estructura del repositorio](#estructura-del-repositorio)
 - [Requisitos](#requisitos)
 - [Instalación](#instalación)
 - [Uso](#uso)
-- [Tests](#tests)
 - [Configuración](#configuración)
-- [CI](#ci)
+- [Tests / CI](#tests--ci)
 - [Seguridad](#seguridad)
-- [Limitaciones / Roadmap](#limitaciones--roadmap)
+- [Roadmap](#roadmap)
 - [Licencia](#licencia)
 
 ## Características
 
-- Evaluación matemática segura con `ast.parse()` (sin `eval`)
-- Chatbot conversacional con NLTK (pattern matching)
-- Comando `!saludo` con detección del owner
-- Auto-mensaje programado cada 60s en canal configurado
-- Sistema de comandos con prefijo `!`
-
-## Stack
-
-- Python 3.11+, discord.py 2.3, NLTK, python-dotenv
+- Evaluación matemática segura con `ast.parse()` (sin `eval`).
+- Chatbot conversacional con NLTK (pattern matching).
+- Comando `!saludo` con detección del owner.
+- Auto-mensaje programado cada 60s en un canal configurado.
+- Sistema de comandos con prefijo `!` (discord.py `commands.Bot`).
 
 ## Arquitectura
 
+```mermaid
+flowchart TD
+  DISC[Discord Gateway] --> BOT[app.py commands.Bot prefijo !]
+  BOT --> CMD1[!calcular -> evaluador AST seguro]
+  BOT --> CMD2[!responder -> Chat NLTK patterns+reflections]
+  BOT --> CMD3[!saludo -> especial owner]
+  BOT --> ONREADY[on_ready]
+  ONREADY --> AUTO[bucle asyncio: mensaje automatico cada 60s]
+  AUTO --> CH[canal CHANNEL_ID]
+  BOT --> NLTK[datos NLTK: punkt, wordnet]
+```
+
+## Stack
+
+| Componente | Tecnología |
+|---|---|
+| Lenguaje | Python 3.11+ |
+| Bot | discord.py 2.3 (`commands.Bot`, intents de mensajes) |
+| NLP | NLTK 3.8 (punkt, wordnet) |
+| Config | python-dotenv |
+| Testing | pytest + ruff |
+
+## Estructura del repositorio
+
 ```
 discord-pybot/
-├── app.py                 # Bot principal
+├── app.py                 # Bot principal (comandos, chatbot, auto-mensaje)
 ├── tests/
+│   └── test_smoke.py
 ├── img/                   # Assets visuales
+├── .env.example
 ├── requirements.txt
 ├── pyproject.toml
-├── .env.example
 └── README.md
 ```
 
 ## Requisitos
 
 - Python 3.11+
-- Token de bot de Discord
-- Intents de Mensajes habilitados en Discord Developer Portal
+- Token de bot de Discord.
+- Intents de Mensajes habilitados en el Discord Developer Portal.
 
 ## Instalación
 
@@ -64,23 +86,28 @@ pip install -r requirements.txt
 ## Uso
 
 ```bash
-# Configurar token en .env
 cp .env.example .env
 # Editar .env con DISCORD_TOKEN, OWNER_ID, CHANNEL_ID
-
-# Iniciar bot
 python app.py
 ```
 
-**Comandos:**
+Comandos:
 
-| Comando                     | Descripción                                   |
-|-----------------------------|-----------------------------------------------|
-| `!calcular 2 + 3 * 4`      | Evalúa expresión matemática segura            |
-| `!responder Hola`           | Chatbot con respuesta NLTK                    |
-| `!saludo`                   | Saludo personalizado (diferente para el owner)|
+| Comando | Descripción |
+|---|---|
+| `!calcular 2 + 3 * 4` | Evalúa expresión matemática segura (responde con embed y tiempo de ejecución) |
+| `!responder Hola` | Chatbot con respuesta NLTK |
+| `!saludo` | Saludo personalizado (diferente para el owner) |
 
-## Tests
+## Configuración
+
+| Variable | Descripción |
+|---|---|
+| `DISCORD_TOKEN` | Token del bot de Discord (obligatorio). |
+| `OWNER_ID` | ID de usuario Discord del owner. |
+| `CHANNEL_ID` | ID del canal para los auto-mensajes. |
+
+## Tests / CI
 
 ```bash
 pip install pytest ruff
@@ -88,33 +115,23 @@ pytest -q
 ruff check .
 ```
 
-## Configuración
-
-Variables de entorno (ver `.env.example`):
-
-| Variable         | Descripción                          |
-|------------------|--------------------------------------|
-| `DISCORD_TOKEN`  | Token del bot de Discord             |
-| `OWNER_ID`       | ID de usuario Discord del owner      |
-| `CHANNEL_ID`     | ID del canal para auto-mensajes      |
-
-## CI
-
-GitHub Actions ejecuta ruff lint + pytest en cada push y PR.
+GitHub Actions ejecuta ruff lint + pytest en cada push y PR sobre Python 3.11.
 
 ## Seguridad
 
-- `!calcular` usa `ast.parse()` + evaluador custom con operadores permitidos (+, -, \*, /, \*\*)
-- No se usa `eval()` — no hay ejecución de código arbitrario
-- Las expresiones inválidas son capturadas sin crash del bot
+- `!calcular` usa `ast.parse()` + evaluador custom con operadores permitidos (+, -, \*, /, \*\*).
+- No se usa `eval()`: no hay ejecución de código arbitrario.
+- Las expresiones inválidas son capturadas sin crash del bot.
 
-## Limitaciones / Roadmap
+## Roadmap
 
+- [x] Evaluador AST seguro + chatbot NLTK
+- [x] Auto-mensaje programado
 - [ ] Comandos con slash (discord.py 2.4+)
-- [ ] Base de datos para persistencia de configuraciones por servidor
+- [ ] Base de datos para persistencia por servidor
 - [ ] Música y reproducción de audio
 - [ ] Más patrones y respuestas para el chatbot
 
 ## Licencia
 
-MIT
+MIT — ver [LICENSE](LICENSE).
