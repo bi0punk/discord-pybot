@@ -11,8 +11,5 @@ def test_gitignore_exists():
 
 
 def test_images_not_tracked():
-    result = subprocess.run(
-        ["git", "ls-files", "img/"],
-        capture_output=True, text=True
-    )
+    result = subprocess.run(["git", "ls-files", "img/"], capture_output=True, text=True)
     assert result.stdout.strip() == "", f"Images still tracked: {result.stdout.strip()}"
