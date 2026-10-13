@@ -1,74 +1,89 @@
-import discord
-import asyncio
-import os
 import ast
+import asyncio
 import operator
-import nltk
-from nltk.chat.util import Chat, reflections
-from dotenv import load_dotenv
-from discord.ext import commands
+import os
+from collections.abc import Callable
 from datetime import datetime
+
+import discord
+import nltk
+from discord.ext import commands
+from dotenv import load_dotenv
+from nltk.chat.util import Chat, reflections
+
 
 def asegurar_datos_nltk() -> None:
     """Descarga los datos necesarios de NLTK si no están presentes."""
-    for pkg in ['punkt', 'wordnet']:
+    for pkg in ["punkt", "wordnet"]:
         try:
-            nltk.data.find(f'tokenizers/{pkg}')
+            nltk.data.find(f"tokenizers/{pkg}")
         except LookupError:
             nltk.download(pkg)
+
 
 asegurar_datos_nltk()
 
 load_dotenv()
 
-DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
+DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 if not DISCORD_TOKEN:
     raise ValueError("DISCORD_TOKEN no está definido en el archivo .env")
 try:
-    OWNER_ID = int(os.getenv('OWNER_ID'))
-    CHANNEL_ID = int(os.getenv('CHANNEL_ID'))
+    OWNER_ID = int(os.getenv("OWNER_ID", "0"))
+    CHANNEL_ID = int(os.getenv("CHANNEL_ID", "0"))
 except (TypeError, ValueError):
-    raise ValueError("OWNER_ID y CHANNEL_ID deben ser números enteros válidos en el archivo .env")
+    raise ValueError(
+        "OWNER_ID y CHANNEL_ID deben ser números enteros válidos en el archivo .env"
+    ) from None
 
 URL_AUTO = "/play https://www.youtube.com/watch?v=vT0oJWPbIZs&ab_channel=Ozuna"
 ICON_URL = "https://slate.dan.onl/slate.png"
 
 intents = discord.Intents.default()
 intents.message_content = True
-bot = commands.Bot(command_prefix='!', intents=intents)
+bot = commands.Bot(command_prefix="!", intents=intents)
 
 # Definimos pares de patrones y respuestas para el chatbot
 pairs = [
-    (r'Hola|hola|Hi|hi|Hey|hey', ['Hola, ¿cómo estás?', '¡Hola! ¿Cómo te puedo ayudar?']),
-    (r'¿Cuál es tu nombre\??', ['Soy un bot de Discord. ¿Cuál es tu nombre?']),
-    (r'¿Cómo estás\??', ['Estoy bien, gracias por preguntar.', '¡Estoy genial!']),
-    (r'¿Qué puedes hacer\??', ['Puedo ayudarte con cálculos matemáticos y responder preguntas básicas.']),
-    (r'Adiós|adiós|adios|Bye|bye', ['Adiós, ¡que tengas un buen día!', '¡Hasta luego!'])
+    (r"Hola|hola|Hi|hi|Hey|hey", ["Hola, ¿cómo estás?", "¡Hola! ¿Cómo te puedo ayudar?"]),
+    (r"¿Cuál es tu nombre\??", ["Soy un bot de Discord. ¿Cuál es tu nombre?"]),
+    (r"¿Cómo estás\??", ["Estoy bien, gracias por preguntar.", "¡Estoy genial!"]),
+    (
+        r"¿Qué puedes hacer\??",
+        ["Puedo ayudarte con cálculos matemáticos y responder preguntas básicas."],
+    ),
+    (r"Adiós|adiós|adios|Bye|bye", ["Adiós, ¡que tengas un buen día!", "¡Hasta luego!"]),
 ]
 
 chatbot = Chat(pairs, reflections)
+
 
 def evaluar_expresion_matematica(expresion: str) -> tuple:
     """Evalúa una expresión matemática de forma segura usando AST."""
     try:
         inicio = datetime.now()
         expresion_safe = expresion.replace("×", "*").replace("÷", "/")
-        tree = ast.parse(expresion_safe, mode='eval')
+        tree = ast.parse(expresion_safe, mode="eval")
         resultado = evaluar_ast_seguro(tree.body)
         fin = datetime.now()
         tiempo_ejecucion = (fin - inicio).total_seconds()
         return str(resultado), tiempo_ejecucion
     except ZeroDivisionError:
         return None, None
-    except Exception as e:
+    except Exception:
         return None, None
+
 
 def evaluar_ast_seguro(node: ast.AST) -> float:
     """Evalúa un nodo AST de forma segura con operaciones permitidas."""
-    allowed_ops = {
-        ast.Add: operator.add, ast.Sub: operator.sub,
-        ast.Mult: operator.mul, ast.Div: operator.truediv,
-        ast.Pow: operator.pow, ast.USub: operator.neg, ast.UAdd: operator.pos,
+    allowed_ops: dict[type, Callable[..., float]] = {
+        ast.Add: operator.add,
+        ast.Sub: operator.sub,
+        ast.Mult: operator.mul,
+        ast.Div: operator.truediv,
+        ast.Pow: operator.pow,
+        ast.USub: operator.neg,
+        ast.UAdd: operator.pos,
     }
     if isinstance(node, ast.Expression):
         return evaluar_ast_seguro(node.body)
@@ -88,22 +103,25 @@ def evaluar_ast_seguro(node: ast.AST) -> float:
         return op_func(evaluar_ast_seguro(node.operand))
     raise ValueError("Expresión no válida")
 
+
 @bot.command()
 async def calcular(ctx: commands.Context, *, expresion: str) -> None:
     """Evalúa una expresión matemática y muestra el resultado."""
     resultado, tiempo_ejecucion = evaluar_expresion_matematica(expresion)
     if resultado is not None:
-        embed = discord.Embed(title="Calculadora",
-                              description=f"```md\n# Operación\n{expresion}\n\n# Resultado\n{resultado}\n```",
-                              colour=0x00b0f4,
-                              timestamp=datetime.now())
+        embed = discord.Embed(
+            title="Calculadora",
+            description=f"```md\n# Operación\n{expresion}\n\n# Resultado\n{resultado}\n```",
+            colour=0x00B0F4,
+            timestamp=datetime.now(),
+        )
         embed.set_author(name="Math Bot")
         tiempo_str = f"{tiempo_ejecucion:.4f}" if tiempo_ejecucion is not None else "N/A"
-        embed.set_footer(text=f"Tiempo de ejecución: {tiempo_str} segundos",
-                         icon_url=ICON_URL)
+        embed.set_footer(text=f"Tiempo de ejecución: {tiempo_str} segundos", icon_url=ICON_URL)
         await ctx.send(embed=embed)
     else:
         await ctx.send("La expresión no es válida.")
+
 
 @bot.command()
 async def responder(ctx: commands.Context, *, pregunta: str) -> None:
@@ -114,19 +132,22 @@ async def responder(ctx: commands.Context, *, pregunta: str) -> None:
     else:
         await ctx.send("No tengo una respuesta para eso.")
 
+
 @bot.event
 async def on_ready() -> None:
     """Evento ejecutado cuando el bot se conecta correctamente."""
-    print(f'Bot conectado como {bot.user.name}')
+    print(f"Bot conectado como {bot.user.name}")
     bot.loop.create_task(enviar_mensaje_auto())
+
 
 @bot.command()
 async def saludo(ctx: commands.Context) -> None:
     """Saluda al usuario, con tratamiento especial para el dueño."""
     if ctx.author.id == OWNER_ID:
-        await ctx.send(f'Señor')
+        await ctx.send("Señor")
     else:
-        await ctx.send(f'Hola {ctx.author.mention} ¿cómo estás?')
+        await ctx.send(f"Hola {ctx.author.mention} ¿cómo estás?")
+
 
 async def enviar_mensaje_auto() -> None:
     """Envía un mensaje automático cada 60 segundos al canal configurado."""
@@ -138,6 +159,7 @@ async def enviar_mensaje_auto() -> None:
     while True:
         await asyncio.sleep(60)
         await channel.send(URL_AUTO)
+
 
 def main() -> None:
     """Punto de entrada principal del bot."""
